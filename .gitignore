@@ -1,0 +1,12 @@
+v./docs/
+/dist/
+/coverage/
+/package-lock.json
+/node_modules/
+/yarn.lock
+/.idea
+.DS_Store
+/yarn-error.log
+/source_files/
+/sample.unicheck
+/docs/

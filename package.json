@@ -1,0 +1,42 @@
+{
+  "name": "expression",
+  "version": "0.0.1",
+  "description": "Universa simple expression parser",
+  "author": "Sergey Chernov <real.sergeych@gmail.com>",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "files": [
+    "dist/**/*"
+  ],
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "lint": "eslint '*/**/*.ts' --quiet --fix",
+    "link": "yarn build && cd dist && yarn link",
+    "build": "tsc",
+    "full_build": "tsc && yarn docs",
+    "docs": "typedoc",
+    "test": "jest --coverage"
+  },
+  "bin": {
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@babel/parser": "^7.9.6",
+    "@babel/types": "^7.9.6",
+    "@types/jest": "^25.2.2",
+    "@types/node": "^13.13.4",
+    "@typescript-eslint/eslint-plugin": "^4.15.0",
+    "@typescript-eslint/parser": "^4.15.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.3",
+    "husky": "^4.2.5",
+    "jest": "^25.5.3",
+    "lint-staged": "^10.2.2",
+    "prettier": "^2.0.5",
+    "ts-jest": "^25.4.0",
+    "typedoc": "^0.17.6",
+    "typescript": "^4.1.0"
+  }
+}
