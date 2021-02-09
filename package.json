@@ -9,6 +9,10 @@
     "dist/**/*"
   ],
   "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:sergeych/expression.git"
+  },
   "scripts": {
     "lint": "eslint '*/**/*.ts' --quiet --fix",
     "link": "yarn build && cd dist && yarn link",
