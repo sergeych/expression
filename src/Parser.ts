@@ -18,7 +18,7 @@ function parseTopOrError(pc: ParserContext): XNode {
 
 const logicOperators = new Set(["&&", "||", "<", "<=", "==", ">=", ">", "!=", "===", "!==="]);
 const additiveOperators = new Set(["+", "-"]);
-const mutiplicativeOperators = new Set(["*", "/"]);
+const multiplicativeOperators = new Set(["*", "/"]);
 
 function parseBinaryOperation(pc: ParserContext,
                               operators: Set<string>,
@@ -37,13 +37,13 @@ function parseBinaryOperation(pc: ParserContext,
         // and it is our operation
         const r = getter(pc);
         if (!r) pc.syntaxError();
-        // make operation new l-oparand
+        // make operation new l-operand
         l = new XBinaryOperation(t.value, l, r);
         // continue checking
         continue;
       }
       else
-        // token but does not fint our operation
+        // token exists but does not suit our needs:
         pc.pushBack();
     }
     // if we get there, then no more work.
@@ -63,7 +63,7 @@ function parseAdditive(pc: ParserContext): XNode | undefined {
 
 
 function parseMultiplicative(pc: ParserContext): XNode | undefined {
-  return parseBinaryOperation(pc, mutiplicativeOperators, pc => parseUnary(pc));
+  return parseBinaryOperation(pc, multiplicativeOperators, pc => parseUnary(pc));
 }
 
 function parseUnary(pc: ParserContext): XNode | undefined {

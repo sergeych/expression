@@ -1,7 +1,7 @@
 import { Expression } from "./Expression";
 
 /**
- * Type of values supported by Expression parser/caclulator.
+ * Type of values supported by Expression parser/calculator.
  */
 export type ValueType = number | string | boolean | null;
 
@@ -32,7 +32,7 @@ export class XConstant implements XNode {
   constructor(public readonly value: ValueType) {
   }
 
-  calculate(conext: Context): ValueType {
+  calculate(context: Context): ValueType {
     return this.value;
   }
 }

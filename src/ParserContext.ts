@@ -30,11 +30,8 @@ const operatorCharacters = new Set("-+!=<>&|*/");
 export class ParserContext {
   private index: number;
 
-  private puhsbackPositions: number[] = [];
-  private lastIndex: number;
-
-  private row = 0;
-  private lastRowStart = 0;
+  private pushbackPositions: number[] = [];
+  private readonly lastIndex: number;
 
   constructor(private readonly source: string) {
     this.index = 0;
@@ -43,20 +40,18 @@ export class ParserContext {
 
   get currentPosition(): number { return this.index; }
 
+  get lastOffset(): number {
+    return this.pushbackPositions[this.pushbackPositions.length-1] ?? this.lastIndex;
+  }
+
   readonly variables = new Set<string>();
 
   toString(): string {
     return `${this.index}/${this.lastIndex}:${this.source}`;
   }
 
-  nextTokenOrThrow(): Token {
-    const t = this.nextToken();
-    if( t ) return t;
-    this.syntaxError("premature lastIndex of expression");
-  }
-
   nextToken(): Token | undefined {
-    this.puhsbackPositions.push(this.index);
+    this.pushbackPositions.push(this.index);
     this.skipws();
     const ch = this.peekChar();
     if( !ch ) return undefined;
@@ -70,13 +65,15 @@ export class ParserContext {
       this.index++;
       return { type: "bracket", value: ch };
     }
-    return undefined;
+    if( ch == '"' || ch == "'")
+      this.index++;
+    return this.readLiteral(ch);
   }
 
   pushBack() {
-    if( this.puhsbackPositions.length == 0 )
+    if( this.pushbackPositions.length == 0 )
       throw new Error("can't pushback");
-    this.index = this.puhsbackPositions.pop()!;
+    this.index = this.pushbackPositions.pop()!;
   }
 
   private readDigits(): string {
@@ -87,11 +84,22 @@ export class ParserContext {
     let result = ""+this.nextChar();
     while(!this.isEnd) {
       const ch = this.peekChar();
-      if( !ch || !letters.has(ch) && !digits.has(ch) && ch != "_") break;
+      if( !ch || !letters.has(ch) && !digits.has(ch) && ch != "_" && ch != ".") break;
       result += ch;
       this.index++;
     }
     return {type: "name", value: result};
+  }
+
+  private readLiteral(delimiter: string): TokenConstant {
+    let result = "";
+    while(!this.isEnd) {
+      const ch = this.source[this.index++];
+      if( ch == delimiter)
+        break;
+      result += ch;
+    }
+    return { type:"constant", value: result};
   }
 
   private readSet(setClass: Set<string>): string {
@@ -135,8 +143,6 @@ export class ParserContext {
     while(this.index < this.lastIndex) {
       switch (this.source[this.index]) {
         case "\n":
-          this.lastRowStart = this.index++;
-          break;
         case " ":
         case "\t":
           this.index++;
@@ -151,8 +157,6 @@ export class ParserContext {
   get isEnd(): boolean { return this.index >= this.lastIndex; }
 
   syntaxError(text="syntax error"): never {
-    const start = this.puhsbackPositions[this.puhsbackPositions.length-1] || this.lastIndex;
-    console.log(start, this.lastRowStart);
-    throw new Expression.SyntaxError(this.row, start-this.lastRowStart,"syntax error");
+    throw new Expression.SyntaxError(this,text);
   }
 }

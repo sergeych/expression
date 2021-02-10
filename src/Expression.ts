@@ -1,6 +1,6 @@
 import { ParserContext } from "./ParserContext";
 import { parseExpression } from "./Parser";
-import { Context, ValueType, XNode } from "./XNode";
+import { ValueType, XNode } from "./XNode";
 
 /**
  * Expressions parser/compiler/calculator.
@@ -14,7 +14,7 @@ import { Context, ValueType, XNode } from "./XNode";
 export class Expression {
 
   /**
-   * General exceptino
+   * General exception
    */
   static Exception = class extends Error {};
   /**
@@ -22,7 +22,7 @@ export class Expression {
    */
   static NotFound = class extends Expression.Exception {};
   /**
-   * expresstion part type prevent calculations, e.g. "false * 3"
+   * expression part type prevent calculations, e.g. "false * 3"
    */
   static TypeError = class extends Expression.Exception {};
 
@@ -30,8 +30,8 @@ export class Expression {
    * Error while parsing the expression
    */
   static SyntaxError = class extends Expression.Exception {
-    constructor(readonly row: number,readonly column: number, text = "syntax error") {
-      super(`(${row}:${column}) ${text}`);
+    constructor(readonly pc: ParserContext, text = "syntax error") {
+      super(`${text} at ${pc.lastOffset}`);
     }
   };
 
@@ -54,12 +54,12 @@ export class Expression {
   }
 
   /**
-   * Caclulate the expression using provided value for variables. Note that missing variables are considered
+   * Calculate the expression using provided value for variables. Note that missing variables are considered
    * having value of `null` and processed as usual.
    *
    * @param variables to use in calculation.
    */
-  caclulate(variables: Record<string,ValueType> = {}): ValueType {
+  calculate(variables: Record<string,ValueType> = {}): ValueType {
     return this.rootNode.calculate({variables});
   }
 }
