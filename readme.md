@@ -16,6 +16,8 @@
   expect(exp.calculate({foo: 10, bar: 10 })).toEqual(30);
 ~~~
 
+See also [online documentation][1].
+
 ## Features
 
 Extremely fast calculation of once created expression. Expression constructor creates 
@@ -49,8 +51,10 @@ Boolean expressions can be only compared for equality, we do not impose order on
 
 Boolean operators are not converted to number as for now.
 
-We try to self-document all parts as much as possible.
+We try to [self-document][1] all parts as much as possible.
 
 ## License 
 
 MIT, see the repository.
+
+[1]: (https://kb.universablockchain.com/system/static/uxpression/index.html)
