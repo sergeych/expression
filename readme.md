@@ -10,11 +10,17 @@
   // detected variables:
   console.log(exp.variables);
   
-  // calculate with goven variables:
+  // calculate with given variables:
   expect(exp.calculate({foo: 10, bar: 20 })).toEqual(50);
+  // recaclulation is very fast, no need to parse:
+  expect(exp.calculate({foo: 10, bar: 10 })).toEqual(30);
 ~~~
 
 ## Features
+
+Extremely fast calculation of once created expression. Expression constructor creates 
+and optimizes expression tree to speed up calculations. Main usage paradigm is
+to create instance and then call `caclulate` with necessary variables.
 
 - regular math, brackets
 - logic operations: true, false, &&, ||, !, !!, >=, >. <=, <<, !==, ===
