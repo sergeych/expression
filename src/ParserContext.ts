@@ -30,7 +30,6 @@ const operatorCharacters = new Set("-+!=<>&|*/");
 export class ParserContext {
   private index: number;
 
-  private pushbackPositions: number[] = [];
   private readonly lastIndex: number;
 
   constructor(private readonly source: string) {
@@ -38,10 +37,12 @@ export class ParserContext {
     this.lastIndex = source.length;
   }
 
-  get currentPosition(): number { return this.index; }
+  get currentPosition(): number {
+    return this.index;
+  }
 
   get lastOffset(): number {
-    return this.pushbackPositions[this.pushbackPositions.length-1] ?? this.lastIndex;
+    return this.lastIndex;
   }
 
   readonly variables = new Set<string>();
@@ -50,30 +51,49 @@ export class ParserContext {
     return `${this.index}/${this.lastIndex}:${this.source}`;
   }
 
+  private pushbackBuffer: Token[] = [];
+  private lastToken?: Token;
+
   nextToken(): Token | undefined {
-    this.pushbackPositions.push(this.index);
+
+    const push = (t: Token) => {
+      this.lastToken = t;
+      return t;
+    }
+
+    if (this.pushbackBuffer.length > 0) {
+      this.lastToken = this.pushbackBuffer.pop();
+      return this.lastToken;
+    }
     this.skipws();
     const ch = this.peekChar();
-    if( !ch ) return undefined;
-    if( digits.has(ch) )
-      return this.readNumber();
-    if( operatorCharacters.has(ch))
-      return this.readOperator();
-    if( letters.has(ch) || ch == "_" )
-      return this.readName();
-    if( ch == '(' || ch == ')') {
+    if (!ch) return undefined;
+    if (digits.has(ch))
+      return push(this.readNumber());
+    if (operatorCharacters.has(ch))
+      return push(this.readOperator());
+    if (letters.has(ch) || ch == "_")
+      return push(this.readName());
+    if (ch == '(' || ch == ')') {
       this.index++;
-      return { type: "bracket", value: ch };
+      return push({ type: "bracket", value: ch });
     }
-    if( ch == '"' || ch == "'")
+    if (ch == '"' || ch == "'")
       this.index++;
-    return this.readLiteral(ch);
+    return push(this.readLiteral(ch));
   }
 
   pushBack() {
-    if( this.pushbackPositions.length == 0 )
+    // if( this.pushbackPositions.length == 0 )
+    //   throw new Error("can't pushback");
+    // this.index = this.pushbackPositions.pop()!;
+    if (!this.lastToken)
       throw new Error("can't pushback");
-    this.index = this.pushbackPositions.pop()!;
+    this.pushbackBuffer.push(this.lastToken);
+    if (this.pushbackBuffer.length > 1)
+      this.lastToken = this.pushbackBuffer[this.pushbackBuffer.length - 2]
+    else
+      this.lastToken = undefined;
   }
 
   private readDigits(): string {
@@ -81,30 +101,30 @@ export class ParserContext {
   }
 
   private readName(): TokenName {
-    let result = ""+this.nextChar();
-    while(!this.isEnd) {
+    let result = "" + this.nextChar();
+    while (!this.isEnd) {
       const ch = this.peekChar();
-      if( !ch || !letters.has(ch) && !digits.has(ch) && ch != "_" && ch != ".") break;
+      if (!ch || !letters.has(ch) && !digits.has(ch) && ch != "_" && ch != ".") break;
       result += ch;
       this.index++;
     }
-    return {type: "name", value: result};
+    return { type: "name", value: result };
   }
 
   private readLiteral(delimiter: string): TokenConstant {
     let result = "";
-    while(!this.isEnd) {
+    while (!this.isEnd) {
       const ch = this.source[this.index++];
-      if( ch == delimiter)
+      if (ch == delimiter)
         break;
       result += ch;
     }
-    return { type:"constant", value: result};
+    return { type: "constant", value: result };
   }
 
   private readSet(setClass: Set<string>): string {
     let result = "";
-    for( let ch=this.peekChar(); ch && setClass.has(ch); ) {
+    for (let ch = this.peekChar(); ch && setClass.has(ch);) {
       result += ch;
       ch = this.source.charAt(++this.index);
     }
@@ -112,17 +132,17 @@ export class ParserContext {
   }
 
   private readOperator(): TokenOperator {
-    return {type: "operator", value: this.readSet(operatorCharacters) };
+    return { type: "operator", value: this.readSet(operatorCharacters) };
   }
 
   private readNumber(): TokenConstant {
     let result = this.readDigits();
-    if( this.peekChar() == ".") {
+    if (this.peekChar() == ".") {
       result += this.nextChar() + this.readDigits();
-      if( this.peekChar()?.toLowerCase() == "e") {
+      if (this.peekChar()?.toLowerCase() == "e") {
         result += this.nextChar();
         const c = this.peekChar();
-        if( c == '+' || c == '-') result += this.nextChar();
+        if (c == '+' || c == '-') result += this.nextChar();
         result += this.readDigits();
       }
     }
@@ -130,17 +150,17 @@ export class ParserContext {
   }
 
   private nextChar(): string | undefined {
-    if( this.isEnd ) return undefined;
+    if (this.isEnd) return undefined;
     return this.source.charAt(this.index++);
   }
 
   private peekChar(): string | undefined {
-    if( this.isEnd ) return undefined;
+    if (this.isEnd) return undefined;
     return this.source.charAt(this.index);
   }
 
   skipws(): ParserContext {
-    while(this.index < this.lastIndex) {
+    while (this.index < this.lastIndex) {
       switch (this.source[this.index]) {
         case "\n":
         case " ":
@@ -154,9 +174,11 @@ export class ParserContext {
     return this;
   }
 
-  get isEnd(): boolean { return this.index >= this.lastIndex; }
+  get isEnd(): boolean {
+    return this.index >= this.lastIndex;
+  }
 
-  syntaxError(text="syntax error"): never {
-    throw new Expression.SyntaxError(this,text);
+  syntaxError(text = "syntax error"): never {
+    throw new Expression.SyntaxError(this, text);
   }
 }

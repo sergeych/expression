@@ -35,7 +35,7 @@ Several note on operators:
 | !x  | convert x to boolean and negate, e.g. `!1 === false` |
 | !!x | convert x to boolean, e.g. `!!1 === true` |
 | +x | when used as unary, converts x from string to number if need |
-/x + y| if x or y is string, concatenates strings, otherwise sum numbers|
+|x + y| if x or y is string, concatenates strings, otherwise sum numbers|
 | comparisons | see note below |
 
 ### Comparison operators
