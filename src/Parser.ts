@@ -1,5 +1,5 @@
 import { ParserContext } from "./ParserContext";
-import { XBinaryOperation, XConstant, XNode, XUnaryOperation, XVariable } from "./XNode";
+import { Context, XBinaryOperation, XConstant, XNode, XUnaryOperation, XVariable } from "./XNode";
 import { Expression } from "./Expression";
 
 export function parseExpression(pc: ParserContext): XNode {
@@ -38,7 +38,7 @@ function parseBinaryOperation(pc: ParserContext,
         const r = getter(pc);
         if (!r) pc.syntaxError();
         // make operation new l-operand
-        l = new XBinaryOperation(t.value, l, r);
+        l = optimize(new XBinaryOperation(t.value, l, r));
         // continue checking
         continue;
       }
@@ -50,6 +50,19 @@ function parseBinaryOperation(pc: ParserContext,
     break;
   }
   return l;
+}
+
+const emptyContext: Context = {variables: {}}
+
+/**
+ * Perform constexpr optimization
+ * @param node
+ */
+function optimize(node: XNode): XNode {
+  if( node.isConst && !(node instanceof XConstant) ) {
+    return new XConstant(node.calculate(emptyContext));
+  }
+  return node;
 }
 
 
@@ -105,12 +118,7 @@ function createUnary(pc: ParserContext, operator: string): XNode {
     case "!!":
     case "-":
     case "+":
-      return new XUnaryOperation(operator, operand);
+      return optimize(new XUnaryOperation(operator, operand));
   }
   throw new Expression.Exception("unsupported unary operator: " + operator);
 }
-
-
-// export function parseOperation(pc: ParserContext, operators: string[]): XNode | undefined {
-//   const
-// }

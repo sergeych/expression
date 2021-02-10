@@ -1,6 +1,6 @@
 {
   "name": "uxpression",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Universa simple expression parser",
   "author": "Sergey Chernov <real.sergeych@gmail.com>",
   "license": "MIT",

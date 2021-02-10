@@ -68,3 +68,20 @@ it("has string literals", () => {
   expect(new Expression('"foo"+"bar"').calculate()).toEqual("foobar");
   expect(new Expression('1+"bar"').calculate()).toEqual("1bar");
 });
+
+function bm(text, repetitions: number, f: () => void) {
+  const start = Date.now();
+  let r = repetitions;
+  while( r-- > 0)
+    f();
+  console.log(`bm/${repetitions}: ${Date.now() - start}: ${text}`)
+}
+
+it("benchmark", () => {
+  const e = new Expression("foo*(7-1*3) + 4");
+  const context = {foo: 10 };
+  let s = 0;
+  bm("constexpr calculate", 5000000,()=> {
+    s += e.calculate(context) as number;
+  });
+});

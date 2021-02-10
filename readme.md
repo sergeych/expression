@@ -20,6 +20,7 @@
 - logic operations: true, false, &&, ||, !, !!, >=, >. <=, <<, !==, ===
 - arithmetic comparisons
 - string and boolean types. 
+- constant subexpressions optimization
 
 Several note on operators:
 
