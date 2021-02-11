@@ -12,7 +12,8 @@ e.g.
 or using your favorite package manager. Once you have it added:
 
 ~~~typescript
-  // import Expression it the way you prefer
+  // import Expression it the way you prefer, like
+  import { Expression } from "uxpression";
 
   // parse (sort of compile) expression
   const exp = new Expression("foo + bar*2");
