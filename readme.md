@@ -4,7 +4,16 @@
 
 ## Usage
 
+Include it from the [npm module uxpression](https://www.npmjs.com/package/uxpression)
+e.g.
+
+    yarn add uxpression
+
+or using your favorite package manager. Once you have it added:
+
 ~~~typescript
+  // import Expression it the way you prefer
+
   // parse (sort of compile) expression
   const exp = new Expression("foo + bar*2");
   // detected variables:
@@ -15,8 +24,6 @@
   // recaclulation is very fast, no need to parse:
   expect(exp.calculate({foo: 10, bar: 10 })).toEqual(30);
 ~~~
-
-See also [online documentation](https://kb.universablockchain.com/system/static/uxpression/index.html).
 
 ## Features
 
@@ -50,6 +57,14 @@ or will throw an exception on calculation time. Use `+strValue` to convert strin
 Boolean expressions can be only compared for equality, we do not impose order on them.
 
 Boolean operators are not converted to number as for now.
+
+## More inrormation
+
+If for some reason it is not enough, see [online documentation](https://kb.universablockchain.com/system/static/uxpression/index.html).
+
+## Contribution
+
+Your welcome. The rules as everythwre in the github. Make a PR. Don't forget tests and comments.
 
 ## License 
 
