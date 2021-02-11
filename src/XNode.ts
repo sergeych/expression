@@ -96,6 +96,14 @@ export class XBinaryOperation implements XNode {
   }
 }
 
+/**
+ * Compare only comparablem e.g. ordered values. _Can't compare values for which does not exist order but exists
+ * equity, this is an error_.
+ *
+ * @param a
+ * @param b
+ * @throws Expression.Exception if values are incomparable.
+ */
 function compare(a: ValueType,b: ValueType): number {
   if( typeof(a) == 'string' && typeof(b) == 'string') return a.localeCompare(b);
   if( typeof(a) == 'number' && typeof(b) == 'number') {

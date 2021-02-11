@@ -66,19 +66,34 @@ function optimize(node: XNode): XNode {
 }
 
 
+/**
+ * lowest priority : exprA || exprB
+ * @param pc
+ */
 function parseLogic(pc: ParserContext): XNode | undefined {
   return parseBinaryOperation(pc, logicOperators, pc => parseAdditive(pc));
 }
 
+/**
+ * Medium priority, a + b - c
+ * @param pc
+ */
 function parseAdditive(pc: ParserContext): XNode | undefined {
   return parseBinaryOperation(pc, additiveOperators, pc => parseMultiplicative(pc));
 }
 
-
+/**
+ * high priority: a * b / c
+ * @param pc
+ */
 function parseMultiplicative(pc: ParserContext): XNode | undefined {
   return parseBinaryOperation(pc, multiplicativeOperators, pc => parseUnary(pc));
 }
 
+/**
+ * Top priority: unary operations, also constants, variables and brackets.
+ * @param pc
+ */
 function parseUnary(pc: ParserContext): XNode | undefined {
   const t = pc.nextToken();
   if (!t) return undefined;
@@ -90,16 +105,26 @@ function parseUnary(pc: ParserContext): XNode | undefined {
     case "operator":
       return createUnary(pc, t.value);
     case "bracket": {
-      const node = parseTopOrError(pc);
-      const t = pc.nextToken();
-      if( !t || t.type != "bracket" ) pc.syntaxError();
-      return node;
+      // should always be an OPENING bracket
+      if( t.value == "(" ) {
+        const node = parseTopOrError(pc);
+        const t = pc.nextToken();
+        if (!t || t.type != "bracket") pc.syntaxError("missing closing bracket");
+        return node;
+      }
+      else
+        pc.syntaxError("unexpected ')'");
     }
-
   }
   this.syntaxError("failed parse expression at position ");
 }
 
+/**
+ * The name could be a variable, or predefined constant, e.g. 'true'. If it is a variable, adds it to the
+ * list of [[variables]].
+ * @param pc
+ * @param name to check
+ */
 function parseName(pc: ParserContext, name: string): XNode {
   switch (name) {
     case "true":
@@ -111,6 +136,11 @@ function parseName(pc: ParserContext, name: string): XNode {
   return new XVariable(name);
 }
 
+/**
+ * Create unary operator node from a name
+ * @param pc
+ * @param operator operator name as obtained from a token
+ */
 function createUnary(pc: ParserContext, operator: string): XNode {
   const operand = parseUnary(pc) ?? pc.syntaxError();
   switch (operator) {
