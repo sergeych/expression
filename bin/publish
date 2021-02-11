@@ -1,4 +1,4 @@
 #!/bin/bash
 
-yarn build && yarn lint && yarn test && yarn publish
+yarn build && yarn lint && yarn test && yarn publish && pubdocs
 

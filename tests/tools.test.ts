@@ -69,6 +69,12 @@ it("has string literals", () => {
   expect(new Expression('1+"bar"').calculate()).toEqual("1bar");
 });
 
+it("has vars:with:colon", () => {
+  const x = new Expression("foo:bar * 0.15");
+  expect(x.variables).toContain("foo:bar");
+  expect(x.calculate({"foo:bar": 10})).toEqual(1.5);
+})
+
 function bm(text, repetitions: number, f: () => void) {
   const start = Date.now();
   let r = repetitions;

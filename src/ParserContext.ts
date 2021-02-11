@@ -104,7 +104,7 @@ export class ParserContext {
     let result = "" + this.nextChar();
     while (!this.isEnd) {
       const ch = this.peekChar();
-      if (!ch || !letters.has(ch) && !digits.has(ch) && ch != "_" && ch != ".") break;
+      if (!ch || !letters.has(ch) && !digits.has(ch) && ch != "_" && ch != "." && ch != ":") break;
       result += ch;
       this.index++;
     }
