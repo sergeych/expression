@@ -30,10 +30,10 @@ or using your favorite package manager. Once you have it added:
 
 Extremely fast calculation of once created expression. Expression constructor creates 
 and optimizes expression tree to speed up calculations. Main usage paradigm is
-to create instance and then call `caclulate` with necessary variables.
+to create an instance and then call `caclulate` with necessary variables.
 
 - regular math, brackets
-- logic operations: true, false, &&, ||, !, !!, >=, >. <=, <<, !==, ===
+- logic operations: true, false, &&, ||, !, !!, >=, >, <=, <<, !==, ===
 - arithmetic comparisons
 - string and boolean types. 
 - constant subexpressions optimization
@@ -55,7 +55,7 @@ Several note on operators:
 
 Equality operators `== === != !===` works for all types as in javascript, except for lists.
 
-Operaionts '==' and '!=' if any operand is a list, requires that other operand be  list too, 
+Operations '==' and '!=' if any operand is a list, requires that other operand be  list too, 
 and check that lists are per-element equals. Nested lists are allowed and checked as 
 expected. To check _inclusion_ instead use operators 'x in list' or 'x !in list'.
 
@@ -86,7 +86,7 @@ If for some reason it is not enough, see [online documentation](https://kb.unive
 
 ## Contribution
 
-Your welcome. The rules as everythwre in the github. Make a PR. Don't forget tests and comments.
+You're welcome. The rules as everywhere in the github. Make a PR. Don't forget tests and comments.
 
 ## License 
 
