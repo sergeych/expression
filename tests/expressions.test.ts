@@ -78,6 +78,8 @@ it("has vars:with:colon", () => {
 it("support lists", () => {
   expect(new Expression("[1,222,3]").calculate()).toEqual([1,222,3]);
   expect(new Expression("[1,222,3] == [1,222,3]").calculate()).toBeTruthy();
+  expect(new Expression("[1,2,[1,3]] == [1,2,[1,3]]").calculate()).toBeTruthy();
+  expect(new Expression("[1,2,[1,3]] == [1,2,x]").calculate({x: [1,3]})).toBeTruthy();
   expect(new Expression("[1,222,3] != [1,222,3]").calculate()).toBeFalsy();
   expect(new Expression("[1,222,3] != [1,11,3]").calculate()).toBeTruthy();
   expect(new Expression("[1,222,3] == [1,11,3]").calculate()).toBeFalsy();
@@ -100,19 +102,23 @@ it("support lists", () => {
   expect(new Expression("['foo', 1] !in [1,5,'foo']").calculate()).toBeFalsy();
 });
 
-function bm(text, repetitions: number, f: () => void) {
-  const start = Date.now();
-  let r = repetitions;
-  while( r-- > 0)
-    f();
-  console.log(`bm/${repetitions}: ${Date.now() - start}: ${text}`)
-}
-
-it("benchmark", () => {
-  const e = new Expression("foo*(7-1*3) + 4");
-  const context = {foo: 10 };
-  let s = 0;
-  bm("constexpr calculate", 5000000,()=> {
-    s += e.calculate(context) as number;
-  });
+it("concatenate lists", () => {
+  expect(new Expression("([1,2,3] + [3,2, 'foo']) == [1,2,3,3,2,'foo']").calculate()).toBeTruthy()
 });
+
+// function bm(text, repetitions: number, f: () => void) {
+//   const start = Date.now();
+//   let r = repetitions;
+//   while( r-- > 0)
+//     f();
+//   console.log(`bm/${repetitions}: ${Date.now() - start}: ${text}`)
+// }
+
+// it("benchmark", () => {
+//   const e = new Expression("foo*(7-1*3) + 4");
+//   const context = {foo: 10 };
+//   let s = 0;
+//   bm("constexpr calculate", 5000000,()=> {
+//     s += e.calculate(context) as number;
+//   });
+// });

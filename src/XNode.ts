@@ -60,10 +60,18 @@ function n(value: ValueType): number {
   throw new Expression.TypeError(`cant convert to number: '${value}'`)
 }
 
-function smartAdd(l: ValueType,r: ValueType) {
+function addArrays(l: ValueType,r: ValueType): Array<ValueType> {
+  if( !(l instanceof Array) || !(r instanceof Array))
+    throw new Expression.TypeError("concatenating arrays require 2 arrays");
+  return [...l, ...r];
+}
+
+function smartAdd(l: ValueType,r: ValueType): ValueType {
   if( typeof(l) === "string" || typeof(r) === "string") {
     return `${l}${r}`;
   }
+  if( l instanceof Array || r instanceof Array)
+    return addArrays(l,r);
   return n(l) + n(r);
 }
 
@@ -84,7 +92,7 @@ function smartEquals(l: ValueType,r: ValueType): boolean {
     return true;
   }
   if( l instanceof Array || r instanceof Array)
-    throw new Expression.Exception("can't check equality of list and value, use 'in' or '!in'");
+    throw new Expression.TypeError("can't check equality of list and value, use 'in' or '!in'");
   return l == r;
 }
 
@@ -99,7 +107,7 @@ function checkInList(l: ValueType,r: ValueType): boolean {
     return false;
   }
   else
-    throw new Expression.Exception("operator in requires list as the right operand");
+    throw new Expression.TypeError("operator in requires list as the right operand");
 }
 
 
