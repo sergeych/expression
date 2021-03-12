@@ -1,5 +1,5 @@
-import { ParserContext } from "./ParserContext";
-import { Context, XBinaryOperation, XConstant, XNode, XUnaryOperation, XVariable } from "./XNode";
+import { ParserContext, Token } from "./ParserContext";
+import { Context, XBinaryOperation, XConstant, XList, XNode, XUnaryOperation, XVariable } from "./XNode";
 import { Expression } from "./Expression";
 
 export function parseExpression(pc: ParserContext): XNode {
@@ -16,7 +16,7 @@ function parseTopOrError(pc: ParserContext): XNode {
   pc.syntaxError();
 }
 
-const logicOperators = new Set(["&&", "||", "<", "<=", "==", ">=", ">", "!=", "===", "!==="]);
+const logicOperators = new Set(["&&", "||", "<", "<=", "==", ">=", ">", "!=", "===", "!===", "in", "!in"]);
 const additiveOperators = new Set(["+", "-"]);
 const multiplicativeOperators = new Set(["*", "/"]);
 
@@ -29,7 +29,7 @@ function parseBinaryOperation(pc: ParserContext,
 
   // loop ofer all chained operations on our level:
   // eslint-disable-next-line no-constant-condition
-  while(true) {
+  while (true) {
     const t = pc.nextToken();
     if (t) {
       // there is a token
@@ -41,8 +41,7 @@ function parseBinaryOperation(pc: ParserContext,
         l = optimize(new XBinaryOperation(t.value, l, r));
         // continue checking
         continue;
-      }
-      else
+      } else
         // token exists but does not suit our needs:
         pc.pushBack();
     }
@@ -52,14 +51,14 @@ function parseBinaryOperation(pc: ParserContext,
   return l;
 }
 
-const emptyContext: Context = {variables: {}}
+const emptyContext: Context = { variables: {} }
 
 /**
  * Perform constexpr optimization
  * @param node
  */
 function optimize(node: XNode): XNode {
-  if( node.isConst && !(node instanceof XConstant) ) {
+  if (node.isConst && !(node instanceof XConstant)) {
     return new XConstant(node.calculate(emptyContext));
   }
   return node;
@@ -104,19 +103,22 @@ function parseUnary(pc: ParserContext): XNode | undefined {
       return parseName(pc, t.value);
     case "operator":
       return createUnary(pc, t.value);
+    case "listBracket":
+      if( t.value == ']')
+        pc.syntaxError("unbalanced closing list bracket");
+      return parseList(pc);
     case "bracket": {
       // should always be an OPENING bracket
-      if( t.value == "(" ) {
+      if (t.value == "(") {
         const node = parseTopOrError(pc);
         const t = pc.nextToken();
         if (!t || t.type != "bracket") pc.syntaxError("missing closing bracket");
         return node;
-      }
-      else
+      } else
         pc.syntaxError("unexpected ')'");
     }
   }
-  this.syntaxError("failed parse expression at position ");
+  pc.syntaxError("failed parse expression at position ");
 }
 
 /**
@@ -134,6 +136,29 @@ function parseName(pc: ParserContext, name: string): XNode {
   }
   pc.variables.add(name);
   return new XVariable(name);
+}
+
+function parseList(pc: ParserContext): XNode {
+  const items = new Array<XNode>();
+  let t: Token | undefined;
+  // eslint-disable-next-line no-constant-condition
+  while(true) {
+    // not end of list, should be a value
+    t = pc.nextToken();
+    if (!t)
+      pc.syntaxError("unterminated list");
+    if( t.type == "listBracket" && t.value == "]")
+      break; // end of list
+    // comma delimiter:
+    if( t.type != "comma" ) {
+      // got to be an expression
+      pc.pushBack();
+      items.push(parseTopOrError(pc));
+    }
+    // else
+    //   pc.syntaxError(`unexpected list syntax (unexpected '${t.value}')`);
+  }
+  return new XList(items);
 }
 
 /**

@@ -3,7 +3,8 @@ import { Expression } from "./Expression";
 /**
  * Type of values supported by Expression parser/calculator.
  */
-export type ValueType = number | string | boolean | null;
+export type ValueItemType = number | string | boolean | null;
+export type ValueType = ValueItemType | Array<ValueType>
 
 export interface Context {
   variables: Record<string,ValueType>;
@@ -23,6 +24,18 @@ export class XVariable implements XNode {
 
   calculate(context: Context): ValueType {
     return context.variables[this.name] ?? null;
+  }
+}
+
+export class XList implements XNode {
+  isConst = false;
+
+  constructor(readonly items: XNode[]) {
+    this.isConst = !items.find(x => !x.isConst);
+  }
+
+  calculate(context: Context): ValueType {
+    return this.items.map(x => x.calculate(context));
   }
 }
 
@@ -62,6 +75,34 @@ function b(value: ValueType): boolean {
   throw new Expression.TypeError(`cant convert to boolean: '${value}'`)
 }
 
+function smartEquals(l: ValueType,r: ValueType): boolean {
+  if( l instanceof Array && r instanceof Array) {
+    if( l.length != r.length ) return false;
+    for( let i=0; i<l.length; i++ ) {
+      if( !smartEquals(l[i], r[i]) ) return false;
+    }
+    return true;
+  }
+  if( l instanceof Array || r instanceof Array)
+    throw new Expression.Exception("can't check equality of list and value, use 'in' or '!in'");
+  return l == r;
+}
+
+function checkInList(l: ValueType,r: ValueType): boolean {
+  if( l instanceof Array ) {
+    for( const x of l) if( !checkInList(x, r)) return false;
+    return true;
+  }
+  if( r instanceof Array) {
+    for (const x of r)
+      if (smartEquals(l, x)) return true;
+    return false;
+  }
+  else
+    throw new Expression.Exception("operator in requires list as the right operand");
+}
+
+
 export class XBinaryOperation implements XNode {
 
   get isConst(): boolean { return this.left.isConst && this.right.isConst; }
@@ -84,20 +125,22 @@ export class XBinaryOperation implements XNode {
       case "&&": return b(l) && b(r);
       case "||": return b(l) || b(r);
       case "===": return l === r;
-      case "==": return l == r;
-      case "!=": return l != r;
+      case "==": return smartEquals(l,r);
+      case "!=": return !smartEquals(l,r);
       case "!==": return l !== r;
       case "<": return compare(l,r) < 0;
       case ">": return compare(l,r) > 0;
       case ">=": return compare(l,r) >= 0;
       case "<=": return compare(l,r) <= 0;
+      case "in": return checkInList(l,r);
+      case "!in": return !checkInList(l,r);
     }
     throw new Expression.Exception("unsupported operation: "+this.operation);
   }
 }
 
 /**
- * Compare only comparablem e.g. ordered values. _Can't compare values for which does not exist order but exists
+ * Compare only comparable items, e.g. ordered values. _Can't compare values for which does not exist order but exists
  * equity, this is an error_.
  *
  * @param a

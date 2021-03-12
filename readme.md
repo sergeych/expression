@@ -37,6 +37,7 @@ to create instance and then call `caclulate` with necessary variables.
 - arithmetic comparisons
 - string and boolean types. 
 - constant subexpressions optimization
+- lists, list equality and inclusion
 
 Several note on operators:
 
@@ -47,10 +48,16 @@ Several note on operators:
 | +x | when used as unary, converts x from string to number if need |
 |x + y| if x or y is string, concatenates strings, otherwise sum numbers|
 | comparisons | see note below |
+| i in list | `i` is in the `list`, see below |
+| i !in list | `i` is not in the `list`, same as `!(i in list)` |
 
 ### Comparison operators
 
-Equality operators `== === != !===` works for all types as in javascript.
+Equality operators `== === != !===` works for all types as in javascript, except for lists.
+
+Operaionts '==' and '!=' if any operand is a list, requires that other operand be  list too, 
+and check that lists are per-element equals. Nested lists are allowed and checked as 
+expected. To check _inclusion_ instead use operators 'x in list' or 'x !in list'.
 
 Comparison operators `< <= >= >` works only if both operands are of the same type,
 or will throw an exception on calculation time. Use `+strValue` to convert string expression to a number for comparison.
@@ -59,7 +66,21 @@ Boolean expressions can be only compared for equality, we do not impose order on
 
 Boolean operators are not converted to number as for now.
 
-## More inrormation
+## Check item is included in the list
+
+There are two infix operators to check inclusion of an item in a list: `x in list` and `x !in list`.
+Not if the `x` itself is a list, it checks that _all_ the elements of x are included in the list.
+
+
+```typescript
+expect(new Expression("['foo', 1] in [1,5,'foo']").calculate()).toBeTruthy();
+expect(new Expression("['foo', 2] !in [1,5,'foo']").calculate()).toBeTruthy();
+expect(new Expression("['foo', 2] in [1,5,'foo']").calculate()).toBeFalsy();
+expect(new Expression("['foo', 1] !in [1,5,'foo']").calculate()).toBeFalsy();
+```
+
+
+## More information
 
 If for some reason it is not enough, see [online documentation](https://kb.universablockchain.com/system/static/uxpression/index.html).
 

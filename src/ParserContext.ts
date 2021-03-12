@@ -21,11 +21,24 @@ interface TokenBracket {
   value: string;
 }
 
-export type Token = TokenConstant | TokenName | TokenOperator | TokenBracket;
+interface TokenListBracket {
+  type: "listBracket";
+  value: string;
+}
+
+interface Comma {
+  type: "comma";
+  value: string;
+}
+
+
+export type Token = TokenConstant | TokenName | TokenOperator | TokenBracket | TokenListBracket | Comma;
 
 const digits = new Set("0123456789");
 const letters = new Set("qwertyuiopasdfghjklzxcvbnm");
 const operatorCharacters = new Set("-+!=<>&|*/");
+
+const infixOperations = new Set(["in", "!in"]);
 
 export class ParserContext {
   private index: number;
@@ -72,15 +85,29 @@ export class ParserContext {
       return push(this.readNumber());
     if (operatorCharacters.has(ch))
       return push(this.readOperator());
-    if (letters.has(ch) || ch == "_")
-      return push(this.readName());
+    if (letters.has(ch) || ch == "_") {
+      const name = this.readName();
+      // infix name-operators
+      if( infixOperations.has(name.value) )
+        return push({type:"operator",value: name.value});
+      return push(name);
+    }
     if (ch == '(' || ch == ')') {
       this.index++;
       return push({ type: "bracket", value: ch });
     }
-    if (ch == '"' || ch == "'")
+    if (ch == '[' || ch == ']') {
       this.index++;
-    return push(this.readLiteral(ch));
+      return push({ type: "listBracket", value: ch });
+    }
+    if (ch == '"' || ch == "'") {
+      this.index++;
+      return push(this.readLiteral(ch));
+    }
+    if( ch == ',' ) {
+      this.index++;
+      return push({ type: "comma", value: ch });
+    }
   }
 
   pushBack() {
@@ -111,6 +138,25 @@ export class ParserContext {
     return { type: "name", value: result };
   }
 
+  /**
+   * Skip next characters if they are equal to the pattern, e.g. advance current position to the character
+   * next to the pattern. If the pattern is not fully matched, does not change position.
+   * @param str pattern to expect
+   * @return true if the pattern was found and current position was advanced.
+   * @private
+   */
+  private readIfEqual(str: string): boolean {
+    const savedPosition = this.index;
+    for( const x of str) {
+      if( x == this.peekChar() ) this.index++;
+      else {
+        this.index = savedPosition;
+        return false;
+      }
+    }
+    return true;
+  }
+
   private readLiteral(delimiter: string): TokenConstant {
     let result = "";
     while (!this.isEnd) {
@@ -132,7 +178,14 @@ export class ParserContext {
   }
 
   private readOperator(): TokenOperator {
-    return { type: "operator", value: this.readSet(operatorCharacters) };
+    const op = this.readSet(operatorCharacters);
+    // special care abount !infix operators
+    if( op == "!") {
+      // sp far only "!in"
+      if( this.readIfEqual("in"))
+        return { type: "operator", value: "!in"};
+    }
+    return { type: "operator", value: op };
   }
 
   private readNumber(): TokenConstant {

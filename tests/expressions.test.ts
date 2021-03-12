@@ -75,6 +75,31 @@ it("has vars:with:colon", () => {
   expect(x.calculate({"foo:bar": 10})).toEqual(1.5);
 })
 
+it("support lists", () => {
+  expect(new Expression("[1,222,3]").calculate()).toEqual([1,222,3]);
+  expect(new Expression("[1,222,3] == [1,222,3]").calculate()).toBeTruthy();
+  expect(new Expression("[1,222,3] != [1,222,3]").calculate()).toBeFalsy();
+  expect(new Expression("[1,222,3] != [1,11,3]").calculate()).toBeTruthy();
+  expect(new Expression("[1,222,3] == [1,11,3]").calculate()).toBeFalsy();
+  expect(new Expression("[1,11,3,1] != [1,11,3]").calculate()).toBeTruthy();
+  expect(new Expression("[] == []").calculate()).toBeTruthy();
+  expect(()=>new Expression("1 == [2,21]").calculate()).toThrowError(Expression.Exception)
+  expect(()=>new Expression("1 != [2,21]").calculate()).toThrowError(Expression.Exception)
+  expect(()=>new Expression("[1] == 1").calculate()).toThrowError(Expression.Exception)
+  expect(()=>new Expression("[1] != 1").calculate()).toThrowError(Expression.Exception)
+
+  expect(new Expression("5 in [1,2,'foo']").calculate()).toBeFalsy();
+  expect(new Expression("5 !in [1,2,'foo']").calculate()).toBeTruthy();
+
+  expect(new Expression("5 in [1,5,'foo']").calculate()).toBeTruthy();
+  expect(new Expression("5 !in [1,5,'foo']").calculate()).toBeFalsy();
+
+  expect(new Expression("['foo', 1] in [1,5,'foo']").calculate()).toBeTruthy();
+  expect(new Expression("['foo', 2] !in [1,5,'foo']").calculate()).toBeTruthy();
+  expect(new Expression("['foo', 2] in [1,5,'foo']").calculate()).toBeFalsy();
+  expect(new Expression("['foo', 1] !in [1,5,'foo']").calculate()).toBeFalsy();
+});
+
 function bm(text, repetitions: number, f: () => void) {
   const start = Date.now();
   let r = repetitions;
